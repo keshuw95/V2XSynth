@@ -1,496 +1,365 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="description"
-        content="V2XSynth">
-  <meta name="keywords" content="Nerfies, D-NeRF, NeRF">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="V2XSynth: LLM-driven, retrieval-augmented \\V2X scenario synthesis in CARLA" />
+  <meta name="keywords" content="V2X, CAV, CARLA, SPaT, MAP, BSM, LLM, RAG, Scenic, autonomous driving, connected vehicles, simulation, safety" />
+  <meta property="og:title" content="V2XSynth" />
+  <meta property="og:description" content="An LLM-driven, retrieval-augmented framework for realistic V2X scenario synthesis in CARLA." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="./static/images/simplified_framework_architecture.jpg" />
+  <meta name="twitter:card" content="summary_large_image" />
   <title>V2XSynth</title>
 
-  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <!-- Analytics (optional; remove if undesired) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-
-    gtag('js', new Date());
-
-    gtag('config', 'G-PYVRSFMDRL');
+    function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', 'G-PYVRSFMDRL');
   </script>
 
-  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
-        rel="stylesheet">
+  <!-- Fonts & CSS -->
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans:400,500,700|Noto+Sans:400,700|Castoro:400,700" rel="stylesheet" />
+  <link rel="stylesheet" href="./static/css/bulma.min.css" />
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css" />
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css" />
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css" />
+  <link rel="stylesheet" href="./static/css/index.css" />
+  <link rel="icon" href="./static/images/vehicle.png" />
 
-  <link rel="stylesheet" href="./static/css/bulma.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
-  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
-  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
-  <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
-  <link rel="stylesheet" href="./static/css/index.css">
-  <link rel="icon" href="./static/images/vehicle.png">
-
+  <!-- JS -->
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script defer src="./static/js/fontawesome.all.min.js"></script>
   <script src="./static/js/bulma-carousel.min.js"></script>
   <script src="./static/js/bulma-slider.min.js"></script>
   <script src="./static/js/index.js"></script>
+  <style>
+    /* Light tweaks that play nicely with Bulma */
+    .hero.is-primary-gradient {background: linear-gradient(135deg,#0f172a 0%, #1e293b 60%, #111827 100%);} 
+    .publication-title {letter-spacing: .2px;}
+    .hero .subtitle.badges span {margin: 0 .25rem;}
+    .hero .publication-links .button {margin: .25rem;}
+    .teaser-wrapper {position:relative; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,.15);} 
+    .section-title {display:flex; align-items:center; gap:.5rem}
+    .section-title .icon {color:#4f46e5}
+    .content li{margin:.35rem 0}
+    .results-carousel .item{overflow:hidden; border-radius:12px; box-shadow: 0 8px 24px rgba(0,0,0,.12);} 
+    .author-block a{white-space:nowrap}
+    .affil-line {margin-top:.35rem}
+    .icon-label {display:inline-flex; align-items:center; gap:.35rem}
+    .table thead th {background:#f8fafc}
+    .paper-figure {border-radius:12px; box-shadow: 0 10px 30px rgba(0,0,0,.08);} 
+    code {white-space: pre-wrap}
+  </style>
 </head>
 <body>
 
-<nav class="navbar" role="navigation" aria-label="main navigation">
+<!-- NAVBAR -->
+<nav class="navbar is-transparent" role="navigation" aria-label="main navigation">
   <div class="navbar-brand">
-    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+    <a class="navbar-item" href="#top" aria-label="Home">
+      <span class="icon"><i class="fas fa-car"></i></span>
+    </a>
+    <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navMenu">
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
       <span aria-hidden="true"></span>
     </a>
   </div>
-  <div class="navbar-menu">
-    <div class="navbar-start" style="flex-grow: 1; justify-content: center;">
-      <a class="navbar-item" href="https://keunhong.com">
-      <span class="icon">
-          <i class="fas fa-home"></i>
-      </span>
-      </a>
-
-      <div class="navbar-item has-dropdown is-hoverable">
-        <a class="navbar-link">
-          More Research
-        </a>
-        <div class="navbar-dropdown">
-          <a class="navbar-item" href="https://hypernerf.github.io">
-            HyperNeRF
-          </a>
-          <a class="navbar-item" href="https://nerfies.github.io">
-            Nerfies
-          </a>
-          <a class="navbar-item" href="https://latentfusion.github.io">
-            LatentFusion
-          </a>
-          <a class="navbar-item" href="https://photoshape.github.io">
-            PhotoShape
-          </a>
-        </div>
-      </div>
+  <div id="navMenu" class="navbar-menu">
+    <div class="navbar-start" style="flex-grow:1; justify-content:center;">
+      <a class="navbar-item" href="#abstract">Abstract</a>
+      <a class="navbar-item" href="#highlights">Highlights</a>
+      <a class="navbar-item" href="#method">Method</a>
+      <a class="navbar-item" href="#scenarios">Scenarios</a>
+      <a class="navbar-item" href="#evaluation">Evaluation</a>
+      <a class="navbar-item" href="#bibtex">BibTeX</a>
     </div>
-
   </div>
 </nav>
 
-
-<section class="hero">
+<!-- HERO -->
+<section class="hero is-primary-gradient" id="top">
   <div class="hero-body">
     <div class="container is-max-desktop">
       <div class="columns is-centered">
         <div class="column has-text-centered">
-          <h1 class="title is-1 publication-title">V2XSynth: An LLM-Orchestrated and Retrieval-Augmented V2X Scenario Generator</h1>
-          <div class="is-size-5 publication-authors">
-            <span class="author-block">
-              <a href="https://keshuw95.github.io/">Keshu Wu</a><sup>1</sup>,</span>
-            <span class="author-block">
-              <a href="">Pei Li</a><sup>2,3</sup>,</span>
-            <span class="author-block">
-              <a href="">Hao Zhang</a><sup>1</sup>,
-            </span>
-            <span class="author-block">
-              <a href="">Xiangbo Gao</a><sup>1</sup>,
-            </span>
-            <span class="author-block">
-              <a href=""">Junwei You</a><sup>2</sup>,
-            </span>
-            <span class="author-block">
-              <a href="">Rui Gan</a><sup>2</sup>,
-            </span>
-             <span class="author-block">
-              <a href="">Zhengzhong Tu</a><sup>1</sup>,
-            </span>
-            <span class="author-block">
-              <a href="">Yang Zhou</a><sup>1,*</sup>
-            </span>
-          </div>
+          <h1 class="title is-1 has-text-white publication-title">V2XSynth: An LLM-Driven, Retrieval-Augmented Framework for Realistic <br> V2X Scenario Synthesis</h1>
+          <p class="subtitle badges">
+            <span class="tag is-link is-light">LLM + RAG</span>
+            <span class="tag is-info is-light">CARLA</span>
+            <span class="tag is-primary is-light">SPaT / MAP / BSM</span>
+            <span class="tag is-warning is-light">Open-Source</span>
+          </p>
 
+          <!-- Authors -->
           <div class="is-size-5 publication-authors">
-            <span class="author-block"><sup>1</sup>Texas A&M University,</span>
-            <span class="author-block"><sup>2</sup>University of Wisconsin-Madison</span>
+            <span class="author-block"><a href="https://keshuw95.github.io/">Keshu Wu</a><sup>1</sup>,</span>
+            <span class="author-block"><a href="#">Hao Zhang</a><sup>1</sup>,</span>
+            <span class="author-block"><a href="#">Pei Li</a><sup>2,3</sup>,</span>
+            <span class="author-block"><a href="#">Rui Gan</a><sup>2</sup>,</span>
+            <span class="author-block"><a href="#">Junwei You</a><sup>2</sup>,</span>
+            <span class="author-block"><a href="#">Zhengzhong Tu</a><sup>1</sup>,</span>
+            <span class="author-block"><a href="#">Yang Zhou</a><sup>1,*</sup></span>
+          </div>
+          <div class="is-size-6 affil-line">
+            <span class="author-block"><sup>1</sup>Texas A&M University</span>
+            <span class="author-block"><sup>2</sup>University of Wisconsin–Madison</span>
             <span class="author-block"><sup>3</sup>University of Wyoming</span>
+            <span class="author-block">&nbsp;&nbsp;*&nbsp;corresponding author</span>
           </div>
 
-          <div class="column has-text-centered">
+          <!-- Links -->
+          <div class="column has-text-centered" style="margin-top: .75rem;">
             <div class="publication-links">
-              <!-- PDF Link. -->
-              <span class="link-block">
-                <a href=""
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fas fa-file-pdf"></i>
-                  </span>
-                  <span>Paper</span>
-                </a>
-              </span>
-              <span class="link-block">
-                <a href=""
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="ai ai-arxiv"></i>
-                  </span>
-                  <span>arXiv</span>
-                </a>
-              </span>
-              <!-- Video Link. -->
-              <!-- <span class="link-block">
-                <a href="https://www.youtube.com/watch?v=MrKrnHhk8IA"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-youtube"></i>
-                  </span>
-                  <span>Video</span>
-                </a>
-              </span> -->
-              <!-- Code Link. -->
-              <span class="link-block">
-                <a href=""
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="fab fa-github"></i>
-                  </span>
-                  <span>Code</span>
-                  </a>
-              </span>
-              <!-- Dataset Link. -->
-              <!-- <span class="link-block">
-                <a href="https://github.com/google/nerfies/releases/tag/0.1"
-                   class="external-link button is-normal is-rounded is-dark">
-                  <span class="icon">
-                      <i class="far fa-images"></i>
-                  </span>
-                  <span>Data</span>
-                  </a>
-            </div> -->
-
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-
-<!-- 
-<section class="hero teaser">
-  <div class="container is-max-desktop">
-    <div class="hero-body">
-      <video id="teaser" autoplay muted loop playsinline height="100%">
-        <source src="./static/videos/teaser.mp4"
-                type="video/mp4">
-      </video>
-      <h2 class="subtitle has-text-centered">
-        <span class="dnerf">Nerfies</span> turns selfie videos from your phone into
-        free-viewpoint
-        portraits.
-      </h2>
-    </div>
-  </div>
-</section>
-
-
-<section class="hero is-light is-small">
-  <div class="hero-body">
-    <div class="container">
-      <div id="results-carousel" class="carousel results-carousel">
-        <div class="item item-steve">
-          <video poster="" id="steve" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/steve.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-chair-tp">
-          <video poster="" id="chair-tp" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/chair-tp.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-shiba">
-          <video poster="" id="shiba" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/shiba.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-fullbody">
-          <video poster="" id="fullbody" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/fullbody.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-blueshirt">
-          <video poster="" id="blueshirt" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/blueshirt.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-mask">
-          <video poster="" id="mask" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/mask.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-coffee">
-          <video poster="" id="coffee" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/coffee.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-        <div class="item item-toby">
-          <video poster="" id="toby" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/toby2.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div>
-    </div>
-  </div>
-</section> -->
-
-
-<section class="section">
-  <div class="container is-max-desktop">
-    <!-- Abstract. -->
-    <!-- <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Abstract</h2>
-        <div class="content has-text-justified">
-          <p>
-            We present the first method capable of photorealistically reconstructing a non-rigidly
-            deforming scene using photos/videos captured casually from mobile phones.
-          </p>
-          <p>
-            Our approach augments neural radiance fields
-            (NeRF) by optimizing an
-            additional continuous volumetric deformation field that warps each observed point into a
-            canonical 5D NeRF.
-            We observe that these NeRF-like deformation fields are prone to local minima, and
-            propose a coarse-to-fine optimization method for coordinate-based models that allows for
-            more robust optimization.
-            By adapting principles from geometry processing and physical simulation to NeRF-like
-            models, we propose an elastic regularization of the deformation field that further
-            improves robustness.
-          </p>
-          <p>
-            We show that <span class="dnerf">Nerfies</span> can turn casually captured selfie
-            photos/videos into deformable NeRF
-            models that allow for photorealistic renderings of the subject from arbitrary
-            viewpoints, which we dub <i>"nerfies"</i>. We evaluate our method by collecting data
-            using a
-            rig with two mobile phones that take time-synchronized photos, yielding train/validation
-            images of the same pose at different viewpoints. We show that our method faithfully
-            reconstructs non-rigidly deforming scenes and reproduces unseen views with high
-            fidelity.
-          </p>
-        </div>
-      </div>
-    </div> -->
-    <!--/ Abstract. -->
-
-    <!-- Paper video. -->
-    <!-- <div class="columns is-centered has-text-centered">
-      <div class="column is-four-fifths">
-        <h2 class="title is-3">Video</h2>
-        <div class="publication-video">
-          <iframe src="https://www.youtube.com/embed/MrKrnHhk8IA?rel=0&amp;showinfo=0"
-                  frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
-        </div>
-      </div>
-    </div> -->
-    <!--/ Paper video. -->
-  </div>
-</section>
-
-
-<section class="section">
-  <div class="container is-max-desktop">
-
-    <div class="columns is-centered">
-
-      <!-- Visual Effects. -->
-      <!-- <div class="column">
-        <div class="content">
-          <h2 class="title is-3">Visual Effects</h2>
-          <p>
-            Using <i>nerfies</i> you can create fun visual effects. This Dolly zoom effect
-            would be impossible without nerfies since it would require going through a wall.
-          </p>
-          <video id="dollyzoom" autoplay controls muted loop playsinline height="100%">
-            <source src="./static/videos/dollyzoom-stacked.mp4"
-                    type="video/mp4">
-          </video>
-        </div>
-      </div> -->
-      <!--/ Visual Effects. -->
-
-      <!-- Matting. -->
-      <!-- <div class="column">
-        <h2 class="title is-3">Matting</h2>
-        <div class="columns is-centered">
-          <div class="column content">
-            <p>
-              As a byproduct of our method, we can also solve the matting problem by ignoring
-              samples that fall outside of a bounding box during rendering.
-            </p>
-            <video id="matting-video" controls playsinline height="100%">
-              <source src="./static/videos/matting.mp4"
-                      type="video/mp4">
-            </video>
-          </div>
-
-        </div>
-      </div>
-    </div> -->
-    <!--/ Matting. -->
-
-    <!-- Animation. -->
-    <!-- <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Animation</h2> -->
-
-        <!-- Interpolating. -->
-        <!-- <h3 class="title is-4">Interpolating states</h3>
-        <div class="content has-text-justified">
-          <p>
-            We can also animate the scene by interpolating the deformation latent codes of two input
-            frames. Use the slider here to linearly interpolate between the left frame and the right
-            frame.
-          </p>
-        </div>
-        <div class="columns is-vcentered interpolation-panel">
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_start.jpg"
-                 class="interpolation-image"
-                 alt="Interpolate start reference image."/>
-            <p>Start Frame</p>
-          </div>
-          <div class="column interpolation-video-column">
-            <div id="interpolation-image-wrapper">
-              Loading...
+              <a class="external-link button is-rounded is-white" href="#" title="PDF">
+                <span class="icon"><i class="fas fa-file-pdf"></i></span><span>Paper</span>
+              </a>
+              <a class="external-link button is-rounded is-white" href="#" title="arXiv">
+                <span class="icon"><i class="ai ai-arxiv"></i></span><span>arXiv</span>
+              </a>
+              <a class="external-link button is-rounded is-white" href="#" title="GitHub">
+                <span class="icon"><i class="fab fa-github"></i></span><span>Code</span>
+              </a>
+              <a class="external-link button is-rounded is-white" href="#" title="Colab">
+                <span class="icon"><i class="fas fa-rocket"></i></span><span>Colab</span>
+              </a>
             </div>
-            <input class="slider is-fullwidth is-large is-info"
-                   id="interpolation-slider"
-                   step="1" min="0" max="100" value="0" type="range">
           </div>
-          <div class="column is-3 has-text-centered">
-            <img src="./static/images/interpolate_end.jpg"
-                 class="interpolation-image"
-                 alt="Interpolation end reference image."/>
-            <p class="is-bold">End Frame</p>
-          </div>
-        </div>
-        <br/> -->
-        <!--/ Interpolating. -->
 
-        <!-- Re-rendering. -->
-        <!-- <h3 class="title is-4">Re-rendering the input video</h3>
-        <div class="content has-text-justified">
-          <p>
-            Using <span class="dnerf">Nerfies</span>, you can re-render a video from a novel
-            viewpoint such as a stabilized camera by playing back the training deformations.
-          </p>
-        </div>
-        <div class="content has-text-centered">
-          <video id="replay-video"
-                 controls
-                 muted
-                 preload
-                 playsinline
-                 width="75%">
-            <source src="./static/videos/replay.mp4"
-                    type="video/mp4">
-          </video>
-        </div> -->
-        <!--/ Re-rendering. -->
+          <!-- Teaser -->
+          <div class="teaser-wrapper" style="margin-top: 1.5rem;">
+  <img src="./static/images/simplified_framework_architecture.jpg" alt="Simplified V2XSynth architecture" width="100%" />
+</div>
 
-      <!-- </div>
-    </div> -->
-    <!--/ Animation. -->
-
-
-    <!-- Concurrent Work. -->
-    <!-- <div class="columns is-centered">
-      <div class="column is-full-width">
-        <h2 class="title is-3">Related Links</h2>
-
-        <div class="content has-text-justified">
-          <p>
-            There's a lot of excellent work that was introduced around the same time as ours.
-          </p>
-          <p>
-            <a href="https://arxiv.org/abs/2104.09125">Progressive Encoding for Neural Optimization</a> introduces an idea similar to our windowed position encoding for coarse-to-fine optimization.
-          </p>
-          <p>
-            <a href="https://www.albertpumarola.com/research/D-NeRF/index.html">D-NeRF</a> and <a href="https://gvv.mpi-inf.mpg.de/projects/nonrigid_nerf/">NR-NeRF</a>
-            both use deformation fields to model non-rigid scenes.
-          </p>
-          <p>
-            Some works model videos with a NeRF by directly modulating the density, such as <a href="https://video-nerf.github.io/">Video-NeRF</a>, <a href="https://www.cs.cornell.edu/~zl548/NSFF/">NSFF</a>, and <a href="https://neural-3d-video.github.io/">DyNeRF</a>
-          </p>
-          <p>
-            There are probably many more by the time you are reading this. Check out <a href="https://dellaert.github.io/NeRF/">Frank Dellart's survey on recent NeRF papers</a>, and <a href="https://github.com/yenchenlin/awesome-NeRF">Yen-Chen Lin's curated list of NeRF papers</a>.
-          </p>
         </div>
       </div>
-    </div> -->
-    <!--/ Concurrent Work. -->
-
+    </div>
   </div>
 </section>
 
+<!-- ABSTRACT -->
+<section class="section" id="abstract">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3 section-title"><span class="icon"><i class="fas fa-align-left"></i></span><span>Abstract</span></h2>
+        <div class="content has-text-justified">
+          <p>
+            <strong>V2XSynth</strong> compiles natural-language scenario intents into fully parameterized <em>CARLA</em> simulations that are
+            <em>communication-aware</em>. An LLM-orchestrated compiler performs retrieval-augmented synthesis over a validated knowledge
+            backbone unifying agent behavior priors, spatial/map context, and empirical V2X profiles (SPaT/MAP/BSM). Retrieved Scenic
+            behavior snippets, spatial configurations, and communication modules are assembled into executable scripts with automated
+            context selection (signal richness, network centrality). The resulting scenarios emit joint mobility–messaging telemetry and
+            support structured exploration of V2X-induced faults (latency, jitter, loss, decode delay), revealing how communication
+            degradation propagates into safety outcomes such as signal violations, coordination inconsistencies, and collisions.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-<!-- <section class="section" id="BibTeX">
+<!-- HIGHLIGHTS -->
+<section class="section" id="highlights">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-one-third">
+        <div class="box">
+          <p class="title is-5"><span class="icon-label"><i class="fas fa-code"></i><span>LLM-Orchestrated Compiler</span></span></p>
+          <p>Dual-role Interpreter/Agent that decomposes intent and binds retrieved templates into Scenic+Python for CARLA.</p>
+        </div>
+      </div>
+      <div class="column is-one-third">
+        <div class="box">
+          <p class="title is-5"><span class="icon-label"><i class="fas fa-database"></i><span>Validated Knowledge Fusion</span></span></p>
+          <p>Unified stores across <em>behavior</em>, <em>spatial/map</em>, and <em>V2X comms</em> with early constraint checks to avoid incoherent scenes.</p>
+        </div>
+      </div>
+      <div class="column is-one-third">
+        <div class="box">
+          <p class="title is-5"><span class="icon-label"><i class="fas fa-traffic-light"></i><span>Automated V2X Synthesis</span></span></p>
+          <p>Infrastructure-aware placement (signal density + centrality), realistic degradations, and closed-loop refinement from telemetry.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- METHOD -->
+<section class="section" id="method">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 section-title"><span class="icon"><i class="fas fa-project-diagram"></i></span><span>Method Overview</span></h2>
+        <div class="content has-text-justified">
+          <p>
+            The pipeline comprises four stages: <strong>Scenario Interpreter</strong> → <strong>Validation</strong> → <strong>Retrieval & Assembly</strong> →
+            <strong>Execution & Refinement</strong>. From a structured spec <code>S=(V,R,P,E,M)</code>, the Agent queries behavior, map, and V2X stores; then composes
+            Scenic behaviors and communication modules into an executable script <code>\alpha</code> for CARLA. Telemetry drives iterative refinement to mine edge cases.
+          </p>
+        </div>
+        <figure class="image">
+          <img class="paper-figure" src="./static/images/framework_architecture.jpg" alt="Overview of V2XSynth architecture" style="width:80%; max-width:1000px; display:block; margin:0 auto;"/>
+          <figcaption class="has-text-grey has-text-centered" style="margin-top:.5rem">Overview of <strong>V2XSynth</strong> orchestration and retrieval-augmented code generation.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="section" id="scenarios">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 section-title"><span class="icon"><i class="fas fa-images"></i></span><span>Scenario Gallery</span></h2>
+        <p class="content">A gallery of synthesized V2X scenes generated directly from natural-language prompts. Each panel overlays mobility (agents, lanes, signals) with messaging activity to make V2I (blue) and V2V (red) interactions explicit. See captions for the exact prompts.</p>
+
+        <figure class="image" style="margin-bottom:1.25rem;">
+          <img class="paper-figure" src="./static/images/v2x_exp1.png" alt="Daytime urban arterial traffic" />
+          <figcaption class="has-text-centered" style="margin-top:.5rem;">Prompt: <em>“Daytime urban arterial traffic.”</em></figcaption>
+        </figure>
+
+        <figure class="image" style="margin-bottom:1.25rem;">
+          <img class="paper-figure" src="./static/images/v2x_exp2.png" alt="Dense, high-conflict traffic at a signalized intersection" />
+          <figcaption class="has-text-centered" style="margin-top:.5rem;">Prompt: <em>“Dense, high-conflict traffic at a signalized intersection.”</em></figcaption>
+        </figure>
+
+        <figure class="image" style="margin-bottom:1.25rem;">
+          <img class="paper-figure" src="./static/images/v2x_exp3.png" alt="Congested traffic under rainy conditions with degraded visibility" />
+          <figcaption class="has-text-centered" style="margin-top:.5rem;">Prompt: <em>“Congested traffic under rainy conditions with degraded visibility.”</em></figcaption>
+        </figure>
+
+        <figure class="image" style="margin-bottom:1.25rem;">
+          <img class="paper-figure" src="./static/images/v2x_exp4.png" alt="Normal nighttime urban traffic with few vehicles" />
+          <figcaption class="has-text-centered" style="margin-top:.5rem;">Prompt: <em>“Normal nighttime urban traffic with few vehicles.”</em></figcaption>
+        </figure>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RSU VIEWS -->
+<section class="section" id="rsu-view">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 section-title"><span class="icon"><i class="fas fa-broadcast-tower"></i></span><span>Infrastructure (RSU) Perspectives</span></h2>
+<p class="content">From the RSU vantage point, we visualize SPaT/MAP broadcasts and received BSMs over time to uncover timing skew, coverage gaps, and inconsistencies that can lead to miscoordination. These views complement the scenario gallery by exposing communication-layer causes behind observed behaviors.</p>
+        <figure class="image">
+          <img class="paper-figure" src="./static/images/exp_v2x_rsu_all.png" alt="RSU-mounted infrastructure perspectives across synthesized V2X scenarios" style="width:80%; max-width:1000px; display:block; margin:0 auto;"/>
+          <figcaption class="has-text-grey has-text-centered" style="margin-top:.5rem">RSU-mounted infrastructure perspectives across synthesized V2X scenarios. Temporal snapshots illustrate SPaT/MAP broadcasts and BSM receptions overlaid on vehicle motion and intersection geometry, facilitating diagnosis of broadcast timing, coverage asymmetries, and discrepancies between transmitted signal state and observed agent behavior.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNICATION <-> SAFETY -->
+<section class="section" id="comm-safety">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 section-title"><span class="icon"><i class="fas fa-wifi"></i></span><span>Communication ↔ Safety</span></h2>
+        <div class="content has-text-justified">
+          <p>
+            We model a spatially aware V2X substrate over the map, translating RSSI into latency and delivery rates to reveal zones where
+            information arrives stale or is lost. Scenarios sweeping <em>jitter</em>, <em>loss</em>, and <em>decode delay</em> expose causal propagation into
+            safety metrics (CR, red-light violations, TTC minima).
+          </p>
+        </div>
+        <figure class="image">
+          <img class="paper-figure" src="./static/images/v2x_communication.png" alt="RSSI, latency, and delivery landscapes over map" style="width:60%; max-width:1000px; display:block; margin:0 auto;"/>
+          <figcaption class="has-text-grey has-text-centered" style="margin-top:.5rem">RSSI → Latency/Delivery landscapes on Town03 illustrating communication stress zones.</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EVALUATION -->
+<section class="section" id="evaluation">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3 section-title"><span class="icon"><i class="fas fa-chart-line"></i></span><span>Evaluation</span></h2>
+        <p class="content">SafeBench-style critical scenarios. Lower is better for CR; higher is better for OS.</p>
+        <div class="table-container">
+          <table class="table is-striped is-fullwidth is-hoverable">
+            <thead>
+              <tr>
+                <th rowspan="2">Algorithm</th>
+                <th colspan="4" class="has-text-centered">CR ↓</th>
+                <th colspan="4" class="has-text-centered">OS ↑</th>
+              </tr>
+              <tr>
+                <th>Straight Obstacle</th><th>Lane Changing</th><th>Unprotected Left</th><th>Avg</th>
+                <th>Straight Obstacle</th><th>Lane Changing</th><th>Unprotected Left</th><th>Avg</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>LC</td><td>0.120</td><td>0.510</td><td><strong>0.000</strong></td><td>0.210</td><td>0.827</td><td>0.684</td><td>0.954</td><td>0.822</td></tr>
+              <tr><td>AS</td><td>0.230</td><td>0.430</td><td>0.050</td><td>0.270</td><td>0.784</td><td>0.666</td><td>0.937</td><td>0.796</td></tr>
+              <tr><td>AT</td><td>0.140</td><td>0.300</td><td><strong>0.000</strong></td><td>0.150</td><td>0.849</td><td>0.803</td><td>0.948</td><td>0.867</td></tr>
+              <tr><td>CS</td><td>0.030</td><td>0.110</td><td>0.100</td><td>0.080</td><td><strong>0.905</strong></td><td><strong>0.906</strong></td><td>0.903</td><td>0.905</td></tr>
+              <tr><td><strong>V2XSynth</strong></td><td><strong>0.023</strong></td><td><strong>0.089</strong></td><td><strong>0.000</strong></td><td><strong>0.069</strong></td><td>0.897</td><td>0.898</td><td><strong>0.954</strong></td><td><strong>0.915</strong></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="content">Ablations and comms→safety sweeps are in the paper; code releases include scripts to reproduce tables and plots.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- BIBTEX -->
+<section class="section" id="bibtex">
   <div class="container is-max-desktop content">
-    <h2 class="title">BibTeX</h2>
-    <pre><code>@article{park2021nerfies,
-  author    = {Park, Keunhong and Sinha, Utkarsh and Barron, Jonathan T. and Bouaziz, Sofien and Goldman, Dan B and Seitz, Steven M. and Martin-Brualla, Ricardo},
-  title     = {Nerfies: Deformable Neural Radiance Fields},
-  journal   = {ICCV},
-  year      = {2021},
+    <h2 class="title is-3 section-title"><span class="icon"><i class="fas fa-book"></i></span><span>BibTeX</span></h2>
+    <pre><code>@article{wu2025v2xsynth,
+  title   = {V2XSynth: An LLM-Driven, Retrieval-Augmented Framework for Realistic V2X Scenario Synthesis},
+  author  = {Wu, Keshu and Zhang, Hao and Li, Pei and Gan, Rui and You, Junwei and Tu, Zhengzhong and Zhou, Yang},
+  journal = {arXiv preprint arXiv:XXXX.XXXXX},
+  year    = {2025}
 }</code></pre>
   </div>
-</section> -->
+</section>
 
-
+<!-- FOOTER -->
 <footer class="footer">
   <div class="container">
     <div class="content has-text-centered">
-      <a class="icon-link"
-         href="">
-        <i class="fas fa-file-pdf"></i>
-      </a>
-      <a class="icon-link" href="" class="external-link" disabled>
-        <i class="fab fa-github"></i>
-      </a>
+      <a class="icon-link" href="#" title="PDF"><i class="fas fa-file-pdf"></i></a>
+      <a class="icon-link" href="#" title="GitHub"><i class="fab fa-github"></i></a>
+      <a class="icon-link" href="#" title="arXiv"><i class="ai ai-arxiv"></i></a>
     </div>
     <div class="columns is-centered">
       <div class="column is-8">
-        <div class="content">
-          <p>
-            This website is licensed under a <a rel="license"
-                                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
-            Commons Attribution-ShareAlike 4.0 International License</a>.
-          </p>
-          <p>
-            This means you are free to borrow the <a
-              href="https://github.com/nerfies/nerfies.github.io">source code</a> of this website,
-            we just ask that you link back to this page in the footer.
-            Please remember to remove the analytics code included in the header of the website which
-            you do not want on your website.
-          </p>
+        <div class="content has-text-centered">
+          <p>Website template adapted under <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">CC BY-SA 4.0</a>. If you reuse, please link back here and remove/replace analytics.</p>
         </div>
       </div>
     </div>
   </div>
 </footer>
+
+<script>
+  // Navbar burger only (videos/carousel removed)
+  document.addEventListener('DOMContentLoaded', () => {
+    const $burger = document.querySelector('.navbar-burger');
+    const $menu = document.getElementById($burger?.dataset?.target || 'navMenu');
+    if ($burger && $menu) {
+      $burger.addEventListener('click', () => {
+        $burger.classList.toggle('is-active');
+        $menu.classList.toggle('is-active');
+      });
+    }
+  });
+</script>
 
 </body>
 </html>
